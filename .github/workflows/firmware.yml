@@ -10,8 +10,19 @@ jobs:
   test:
     name: Unit Tests (PlatformIO native)
     runs-on: ubuntu-latest
+    # Le decimos a todos los comandos "run" que se ejecuten dentro de esta carpeta
+    defaults:
+      run:
+        working-directory: ./firmware 
+
     steps:
       - uses: actions/checkout@v4
+
+      # Evita errores de pip en ubuntu-latest
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
       - name: Install GCC
         run: sudo apt-get install -y gcc g++ make
@@ -20,7 +31,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.platformio
-          key: pio-${{ hashFiles('platformio.ini') }}
+          # Corregimos la ruta para que encuentre el archivo y genere el hash
+          key: pio-${{ hashFiles('firmware/platformio.ini') }} 
 
       - name: Install PlatformIO
         run: pip install platformio
@@ -32,14 +44,24 @@ jobs:
     name: Build firmware ESP32
     runs-on: ubuntu-latest
     needs: test
+    # Repetimos el directorio de trabajo para este job
+    defaults:
+      run:
+        working-directory: ./firmware 
+
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
       - name: Cache PlatformIO
         uses: actions/cache@v4
         with:
           path: ~/.platformio
-          key: pio-${{ hashFiles('platformio.ini') }}
+          key: pio-${{ hashFiles('firmware/platformio.ini') }}
 
       - name: Install PlatformIO
         run: pip install platformio
